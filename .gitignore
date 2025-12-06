@@ -1,0 +1,28 @@
+# Quartus db directories
+quartus/db/
+quartus/incremental_db/
+quartus/output_files/
+quartus/simulation/
+
+# Temporary files
+*.qws
+*.smsg
+*.rpt
+*.jdi
+*.csv
+
+# Build artifacts
+*.sof
+*.pof
+*.jam
+*.hex
+*.bin
+
+# SignalTap
+*.stp
+*_autosig.*
+stp1_auto_signaltap_0.txt
+
+# Project auto files
+*.qpf
+*.qdf
