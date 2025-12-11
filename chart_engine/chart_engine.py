@@ -217,6 +217,38 @@ def process_chart(chart_name: str, output_filename: str = "ROM.v") -> bool:
         print(f"[process_chart] 读取文件失败: {exc}")
         return False
 
+    # 3.1. 解析第一行获取 BPM 并更新 MuseDash.v 的 div_cnt
+    if not lines:
+        print(f"[process_chart] 文件为空")
+        return False
+    bpm_line = lines[0].strip()
+    if not bpm_line.startswith("bpm="):
+        print(f"[process_chart] 第一行格式错误，应为 bpm=xxx: {bpm_line}")
+        return False
+    try:
+        bpm = float(bpm_line[4:])  # 跳过 "bpm="
+        if bpm <= 0:
+            print(f"[process_chart] BPM 值无效: {bpm}")
+            return False
+        div_cnt = int(375000000 / bpm)
+    except (ValueError, ZeroDivisionError) as exc:
+        print(f"[process_chart] 解析 BPM 失败: {exc}")
+        return False
+    
+    # 更新 MuseDash.v 的 div_cnt
+    musedash_path = base_dir / "verilog" / "MuseDash.v"
+    try:
+        musedash_content = musedash_path.read_text(encoding="utf-8")
+        # 使用正则表达式替换 div_cnt 的值
+        div_cnt_pattern = r"(parameter\s+div_cnt\s*=\s*)\d+"
+        replacement = f"\\g<1>{div_cnt}"
+        musedash_content = re.sub(div_cnt_pattern, replacement, musedash_content)
+        musedash_path.write_text(musedash_content, encoding="utf-8")
+        print(f"[process_chart] 已更新 MuseDash.v 的 div_cnt = {div_cnt} (BPM = {bpm})")
+    except Exception as exc:
+        print(f"[process_chart] 更新 MuseDash.v 失败: {exc}")
+        return False
+
     events = []
     max_time = 0
     for raw_line in lines[1:]:
